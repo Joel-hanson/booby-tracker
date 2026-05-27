@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Booby Tracker</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet">
+    <style>
+:root {
+  --cream: #FAF7F2;
+  --warm-white: #FFFCF8;
+  --sage: #6B8F71;
+  --sage-light: #EEF4EF;
+  --sage-dark: #4A6B50;
+  --dusty-blue: #7B9BB5;
+  --dusty-blue-light: #EDF2F7;
+  --dusty-blue-dark: #4F7290;
+  --blush: #C4856A;
+  --blush-light: #FAF0EC;
+  --blush-dark: #9A6048;
+  --ink: #1E1C1A;
+  --ink-soft: #5C5751;
+  --ink-faint: #B5AFA8;
+  --border: #EAE5DD;
+  --shadow: 0 2px 12px rgba(30,28,26,0.07);
+  --shadow-lg: 0 8px 32px rgba(30,28,26,0.12);
+  --r: 18px;
+  --r-sm: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+/* ── NAV TABS ── */
+.app-nav {
+  display: flex;
+  background: var(--warm-white);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.nav-tab {
+  flex: 1;
+  border: none;
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink-faint);
+  padding: 14px 8px 12px;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.nav-tab .nav-icon { font-size: 18px; line-height: 1; }
+.nav-tab.active { color: var(--sage-dark); }
+.nav-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 20%; right: 20%;
+  height: 2px;
+  background: var(--sage);
+  border-radius: 2px 2px 0 0;
+}
+
+/* ── SCREENS ── */
+.screen {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 0 2rem;
+}
+.screen.active { display: flex; flex-direction: column; }
+
+/* ──────────────────────────────────────
+   SCREEN 1: TIMER
+────────────────────────────────────── */
+
+.timer-hero {
+  background: var(--warm-white);
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem 1.25rem 1.25rem;
+  text-align: center;
+}
+
+.timer-hero-label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 16px;
+}
+
+.pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--sage); display: none; animation: pulse 1.4s ease-in-out infinite; }
+.pulse.on { display: inline-block; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.25;transform:scale(0.8)} }
+
+.clock-display {
+  font-family: 'DM Mono', monospace;
+  font-size: 64px;
+  font-weight: 400;
+  letter-spacing: -3px;
+  color: var(--ink);
+  line-height: 1;
+  margin: 0 0 4px;
+}
+
+.timer-sub {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ink-soft);
+  min-height: 20px;
+}
+
+.since-badge {
+  display: inline-block;
+  margin-top: 10px;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--ink-faint);
+  font-family: 'DM Mono', monospace;
+}
+
+/* Side buttons */
+.side-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 1rem 1.25rem 0;
+}
+
+.side-btn {
+  border: 2px solid transparent;
+  border-radius: var(--r);
+  padding: 1.4rem 1rem 1.2rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  transition: transform 0.12s, box-shadow 0.12s;
+  position: relative;
+  background: var(--warm-white);
+  box-shadow: var(--shadow);
+}
+
+.side-btn:active { transform: scale(0.94); }
+
+.side-btn .sb-icon { font-size: 28px; }
+.side-btn .sb-name { font-size: 17px; font-weight: 400; color: var(--ink); }
+.side-btn .sb-since { font-size: 11px; color: var(--ink-faint); font-family: 'DM Mono', monospace; }
+.side-btn .sb-badge {
+  position: absolute; top: 9px; right: 9px;
+  font-size: 10px; font-family: 'DM Mono', monospace;
+  padding: 2px 8px; border-radius: 20px;
+  background: var(--sage-light); color: var(--sage-dark);
+  display: none;
+}
+
+.side-btn.left-btn { border-color: var(--sage-light); }
+.side-btn.left-btn:hover { border-color: var(--sage); }
+.side-btn.left-btn.timing {
+  background: var(--sage);
+  border-color: var(--sage);
+  box-shadow: 0 6px 24px rgba(107,143,113,0.4);
+}
+.side-btn.left-btn.timing .sb-name,
+.side-btn.left-btn.timing .sb-since { color: rgba(255,255,255,0.85); }
+.side-btn.left-btn.timing .sb-badge { background: rgba(255,255,255,0.2); color: #fff; display: block; }
+
+.side-btn.right-btn { border-color: var(--dusty-blue-light); }
+.side-btn.right-btn:hover { border-color: var(--dusty-blue); }
+.side-btn.right-btn.timing {
+  background: var(--dusty-blue);
+  border-color: var(--dusty-blue);
+  box-shadow: 0 6px 24px rgba(123,155,181,0.4);
+}
+.side-btn.right-btn.timing .sb-name,
+.side-btn.right-btn.timing .sb-since { color: rgba(255,255,255,0.85); }
+.side-btn.right-btn.timing .sb-badge { background: rgba(255,255,255,0.2); color: #fff; display: block; }
+
+/* pump section */
+.pump-section {
+  margin: 10px 1.25rem 0;
+  background: var(--warm-white);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow);
+}
+.pump-label {
+  font-size: 13px;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+.pump-ml-wrap {
+  flex: 1;
+  position: relative;
+}
+.pump-ml-wrap input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 10px 36px 10px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 15px;
+  background: var(--cream);
+  color: var(--ink);
+  outline: none;
+  -moz-appearance: textfield;
+}
+.pump-ml-wrap input::-webkit-inner-spin-button,
+.pump-ml-wrap input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.pump-ml-wrap input:focus { border-color: var(--blush); }
+.pump-unit {
+  position: absolute;
+  right: 12px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--ink-faint);
+  font-family: 'DM Mono', monospace;
+  pointer-events: none;
+}
+.pump-btn {
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 10px 16px;
+  background: var(--blush);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.pump-btn:hover { background: var(--blush-dark); }
+.pump-btn:active { transform: scale(0.96); }
+
+/* recent feeds */
+.recent-section {
+  padding: 1.25rem 1.25rem 0;
+}
+.section-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.section-hd-title {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 400;
+}
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.recent-item {
+  background: var(--warm-white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ri-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-L { background: var(--sage); }
+.dot-R { background: var(--dusty-blue); }
+.dot-P { background: var(--blush); }
+.ri-body { flex: 1; }
+.ri-main { font-size: 14px; color: var(--ink); }
+.ri-time { font-size: 11px; color: var(--ink-faint); font-family: 'DM Mono', monospace; margin-top: 2px; }
+.ri-dur { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink-soft); }
+
+/* ──────────────────────────────────────
+   SCREEN 2: LOG
+────────────────────────────────────── */
+
+.log-toolbar {
+  background: var(--warm-white);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 1.25rem;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.filter-chip {
+  border: 1px solid var(--border);
+  background: var(--cream);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.filter-chip.active {
+  background: var(--sage);
+  border-color: var(--sage);
+  color: #fff;
+}
+.filter-chip:hover:not(.active) { border-color: var(--sage); color: var(--sage-dark); }
+
+.date-filter-wrap {
+  margin-left: auto;
+  position: relative;
+}
+.date-filter-btn {
+  border: 1px solid var(--border);
+  background: var(--cream);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.date-filter-btn.has-filter {
+  background: var(--sage-light);
+  border-color: var(--sage);
+  color: var(--sage-dark);
+}
+.date-filter-btn:hover { border-color: var(--sage); }
+
+.date-picker-popup {
+  position: absolute;
+  right: 0; top: calc(100% + 6px);
+  background: var(--warm-white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 14px;
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  display: none;
+  min-width: 220px;
+}
+.date-picker-popup.open { display: block; }
+.dp-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.dp-label { font-size: 11px; color: var(--ink-faint); width: 30px; flex-shrink: 0; }
+.dp-input {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--cream);
+  outline: none;
+}
+.dp-input:focus { border-color: var(--sage); }
+.dp-actions { display: flex; gap: 6px; margin-top: 4px; }
+.dp-clear, .dp-apply {
+  flex: 1; border: none; border-radius: 8px;
+  padding: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer;
+}
+.dp-clear { background: var(--cream); color: var(--ink-soft); border: 1px solid var(--border); }
+.dp-apply { background: var(--sage); color: #fff; }
+.dp-apply:hover { background: var(--sage-dark); }
+
+.log-body { flex: 1; overflow-y: auto; padding: 1rem 1.25rem; }
+
+.day-group { margin-bottom: 1.25rem; }
+.day-label {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0 0 8px;
+}
+
+.log-card {
+  background: var(--warm-white);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.log-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.log-entry:last-child { border-bottom: none; }
+.log-entry:hover { background: var(--cream); }
+
+.le-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.le-body { flex: 1; min-width: 0; }
+.le-top { display: flex; align-items: baseline; gap: 7px; }
+.le-side { font-size: 14px; color: var(--ink); }
+.le-dur { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--ink-soft); }
+.le-time { font-size: 11px; color: var(--ink-faint); font-family: 'DM Mono', monospace; margin-top: 2px; }
+.le-del {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-faint); font-size: 18px; padding: 2px 5px;
+  border-radius: 6px; line-height: 1; flex-shrink: 0;
+}
+.le-del:hover { color: #c0392b; background: #fdf0ef; }
+
+.log-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--ink-faint);
+  font-size: 14px;
+  font-style: italic;
+  line-height: 1.9;
+}
+
+/* ──────────────────────────────────────
+   SCREEN 3: SUMMARY
+────────────────────────────────────── */
+
+.sum-toolbar {
+  background: var(--warm-white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.25rem;
+  display: flex;
+  flex-shrink: 0;
+}
+.sum-tab {
+  flex: 1; border: none; background: none;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 400;
+  color: var(--ink-faint); padding: 14px 8px; cursor: pointer;
+  position: relative; transition: color 0.2s;
+}
+.sum-tab.active { color: var(--sage-dark); }
+.sum-tab.active::after {
+  content: '';
+  position: absolute; bottom: 0; left: 15%; right: 15%;
+  height: 2px; background: var(--sage);
+  border-radius: 2px 2px 0 0;
+}
+
+.sum-body { flex: 1; overflow-y: auto; padding: 1.25rem; }
+
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.stat-card {
+  background: var(--warm-white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+}
+.stat-card.full { grid-column: 1 / -1; }
+.sc-label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 6px; }
+.sc-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 28px; font-weight: 500;
+  color: var(--ink); line-height: 1;
+}
+.sc-val sup { font-size: 14px; color: var(--ink-soft); }
+.sc-sub { font-size: 11px; color: var(--ink-faint); margin-top: 4px; font-style: italic; }
+
+.bar-section {
+  background: var(--warm-white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.bar-section .sc-label { margin-bottom: 14px; }
+.bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.bar-row:last-of-type { margin-bottom: 0; }
+.brl { font-size: 11px; color: var(--ink-faint); width: 32px; text-align: right; font-family: 'DM Mono', monospace; flex-shrink: 0; }
+.br-track { flex: 1; height: 7px; background: var(--cream); border-radius: 4px; overflow: hidden; display: flex; }
+.br-fill-L { background: var(--sage); border-radius: 4px 0 0 4px; transition: width 0.5s ease; }
+.br-fill-R { background: var(--dusty-blue); border-radius: 0 4px 4px 0; transition: width 0.5s ease; }
+.brv { font-size: 11px; color: var(--ink-faint); width: 20px; font-family: 'DM Mono', monospace; }
+.legend { display: flex; gap: 14px; margin-top: 12px; }
+.leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-soft); }
+.leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 70px; left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--ink); color: #fff;
+  font-size: 13px; padding: 9px 20px;
+  border-radius: 30px; opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none; z-index: 200;
+  white-space: nowrap; font-family: 'DM Mono', monospace;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+  </head>
+  <body>
+
+    <!-- NAV -->
+    <nav class="app-nav">
+      <button class="nav-tab active" onclick="goScreen('timer',this)">
+        <span class="nav-icon">🤱</span>
+        <span>Feed</span>
+      </button>
+      <button class="nav-tab" onclick="goScreen('log',this)">
+        <span class="nav-icon">📋</span>
+        <span>Log</span>
+      </button>
+      <button class="nav-tab" onclick="goScreen('summary',this)">
+        <span class="nav-icon">📊</span>
+        <span>Stats</span>
+      </button>
+    </nav>
+
+    <!-- ── TIMER SCREEN ── -->
+    <div class="screen active" id="screen-timer">
+      <div class="timer-hero">
+        <div class="timer-hero-label">
+          <div class="pulse" id="pulse"></div>
+          <span id="status-text">tap a side to begin</span>
+        </div>
+        <div class="clock-display" id="clock">00:00</div>
+        <div class="timer-sub" id="timer-sub">&nbsp;</div>
+        <div class="since-badge" id="since-badge">—</div>
+      </div>
+
+      <div class="side-btns">
+        <button class="side-btn left-btn" id="btn-L" onclick="handleSide('L')">
+          <span class="sb-icon">◀</span>
+          <span class="sb-name">Left</span>
+          <span class="sb-since" id="since-L">—</span>
+          <span class="sb-badge" id="badge-L">timing</span>
+        </button>
+        <button class="side-btn right-btn" id="btn-R" onclick="handleSide('R')">
+          <span class="sb-icon">▶</span>
+          <span class="sb-name">Right</span>
+          <span class="sb-since" id="since-R">—</span>
+          <span class="sb-badge" id="badge-R">timing</span>
+        </button>
+      </div>
+
+      <div class="pump-section">
+        <span class="pump-label">🍼 Pumped</span>
+        <div class="pump-ml-wrap">
+          <input type="number" id="pump-ml" value="60" min="1" max="999" />
+          <span class="pump-unit">ml</span>
+        </div>
+        <button class="pump-btn" onclick="logPumped()">Log</button>
+      </div>
+
+      <div class="recent-section">
+        <div class="section-hd">
+          <span class="section-hd-title">Recent</span>
+        </div>
+        <div class="recent-list" id="recent-list"></div>
+      </div>
+    </div>
+
+    <!-- ── LOG SCREEN ── -->
+    <div class="screen" id="screen-log">
+      <div class="log-toolbar">
+        <button class="filter-chip active" data-filter="all"
+          onclick="setLogFilter('all',this)">All</button>
+        <button class="filter-chip" data-filter="L"
+          onclick="setLogFilter('L',this)">Left</button>
+        <button class="filter-chip" data-filter="R"
+          onclick="setLogFilter('R',this)">Right</button>
+        <button class="filter-chip" data-filter="P"
+          onclick="setLogFilter('P',this)">Pumped</button>
+        <div class="date-filter-wrap">
+          <button class="date-filter-btn" id="date-filter-btn"
+            onclick="toggleDatePicker()">
+            <span id="date-filter-label">📅 Date</span>
+          </button>
+          <div class="date-picker-popup" id="date-picker">
+            <div class="dp-row">
+              <span class="dp-label">From</span>
+              <input type="date" class="dp-input" id="dp-from" />
+            </div>
+            <div class="dp-row">
+              <span class="dp-label">To</span>
+              <input type="date" class="dp-input" id="dp-to" />
+            </div>
+            <div class="dp-actions">
+              <button class="dp-clear"
+                onclick="clearDateFilter()">Clear</button>
+              <button class="dp-apply"
+                onclick="applyDateFilter()">Apply</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="log-body" id="log-body"></div>
+    </div>
+
+    <!-- ── SUMMARY SCREEN ── -->
+    <div class="screen" id="screen-summary">
+      <div class="sum-toolbar">
+        <button class="sum-tab active"
+          onclick="setSumTab('day',this)">Today</button>
+        <button class="sum-tab" onclick="setSumTab('week',this)">Week</button>
+        <button class="sum-tab" onclick="setSumTab('month',this)">Month</button>
+      </div>
+      <div class="sum-body" id="sum-body"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+/* ── STATE ── */
+let entries = JSON.parse(localStorage.getItem('nk_v1') || '[]');
+let session = JSON.parse(localStorage.getItem('nk_session') || 'null');
+let tickId = null;
+let logFilter = 'all';
+let dateFrom = null, dateTo = null;
+let sumTab = 'day';
+let currentScreen = 'timer';
+
+/* ── UTILS ── */
+const pad = n => String(n).padStart(2, '0');
+function fmtDur(s) {
+  if (s < 60) return s + 's';
+  const m = Math.floor(s / 60), r = s % 60;
+  return r ? m + 'm ' + r + 's' : m + 'm';
+}
+function fmtTime(ts) { return new Date(ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+function fmtDateTime(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString([], {month:'short', day:'numeric'}) + '  ' +
+    d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+function dayKey(ts) {
+  const d = new Date(ts);
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+}
+function dayLabel(k) {
+  const today = dayKey(Date.now()), yest = dayKey(Date.now()-86400000);
+  if (k === today) return 'Today';
+  if (k === yest) return 'Yesterday';
+  return new Date(k).toLocaleDateString([], {weekday:'long', month:'short', day:'numeric'});
+}
+function timeSince(ts) {
+  const m = Math.floor((Date.now()-ts)/60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return m + 'm ago';
+  const h = Math.floor(m/60), r = m%60;
+  return h + 'h' + (r ? ' '+r+'m' : '') + ' ago';
+}
+function clockStr(s) { return pad(Math.floor(s/60)) + ':' + pad(s%60); }
+function save() { localStorage.setItem('nk_v1', JSON.stringify(entries)); }
+
+/* ── NAVIGATION ── */
+function goScreen(id, btn) {
+  currentScreen = id;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'log') renderLog();
+  if (id === 'summary') renderSummary();
+}
+
+/* ── TIMER ── */
+function startTimer(side) {
+  session = { side, start: Date.now() };
+  localStorage.setItem('nk_session', JSON.stringify(session));
+  if (tickId) clearInterval(tickId);
+  tickId = setInterval(tick, 500);
+  tick();
+  document.getElementById('pulse').classList.add('on');
+  document.getElementById('status-text').textContent = (side==='L'?'Left':'Right') + ' · timing';
+  document.getElementById('timer-sub').textContent = 'tap again to stop';
+  document.getElementById('btn-'+side).classList.add('timing');
+}
+function tick() {
+  if (!session) return;
+  const s = Math.floor((Date.now()-session.start)/1000);
+  document.getElementById('clock').textContent = clockStr(s);
+}
+function stopTimer() {
+  if (!session) return null;
+  clearInterval(tickId); tickId = null;
+  const s = Math.max(1, Math.floor((Date.now()-session.start)/1000));
+  const e = { id: Date.now(), side: session.side, start: session.start, dur: s, ml: null };
+  session = null;
+  localStorage.removeItem('nk_session');
+  document.getElementById('pulse').classList.remove('on');
+  document.getElementById('status-text').textContent = 'tap a side to begin';
+  document.getElementById('clock').textContent = '00:00';
+  document.getElementById('timer-sub').innerHTML = '&nbsp;';
+  ['L','R'].forEach(s => {
+    document.getElementById('btn-'+s).classList.remove('timing');
+  });
+  return e;
+}
+function handleSide(side) {
+  if (session && session.side === side) {
+    const e = stopTimer();
+    if (e) { addEntry(e); showToast('✓ ' + fmtDur(e.dur) + ' logged'); }
+  } else if (session && session.side !== side) {
+    const e = stopTimer();
+    if (e) addEntry(e);
+    setTimeout(() => startTimer(side), 60);
+  } else {
+    startTimer(side);
+  }
+}
+
+/* ── DATA ── */
+function addEntry(e) {
+  entries.unshift(e);
+  save();
+  renderTimer();
+  if (currentScreen === 'log') renderLog();
+  if (currentScreen === 'summary') renderSummary();
+}
+function deleteEntry(id) {
+  entries = entries.filter(e => e.id !== id);
+  save();
+  renderLog();
+  renderTimer();
+}
+function logPumped() {
+  const ml = parseInt(document.getElementById('pump-ml').value) || 0;
+  if (!ml) { showToast('Enter ml amount'); return; }
+  const e = { id: Date.now(), side:'P', start: Date.now(), dur: 0, ml };
+  addEntry(e);
+  showToast('🍼 ' + ml + 'ml pumped logged');
+}
+
+/* ── TOAST ── */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+/* ── TIMER SCREEN RENDER ── */
+function renderTimer() {
+  // since badge
+  const last = entries[0];
+  document.getElementById('since-badge').textContent = last ? 'last feed: ' + timeSince(last.start) : 'no feeds yet';
+
+  // per-side hints
+  ['L','R'].forEach(side => {
+    const last = entries.find(e => e.side === side);
+    const el = document.getElementById('since-'+side);
+    if (!session || session.side !== side) {
+      el.textContent = last ? timeSince(last.start) : '—';
+    }
+  });
+
+  // recent list (last 4 entries)
+  const recent = entries.slice(0,4);
+  const cont = document.getElementById('recent-list');
+  if (!recent.length) { cont.innerHTML = '<div style="font-size:13px;color:var(--ink-faint);font-style:italic;padding:8px 0">No feeds yet</div>'; return; }
+  cont.innerHTML = recent.map(e => {
+    const side = e.side==='L'?'Left side':e.side==='R'?'Right side':'Pumped';
+    const dur = e.side==='P' ? e.ml+'ml' : fmtDur(e.dur);
+    return `<div class="recent-item">
+      <div class="ri-dot dot-${e.side}"></div>
+      <div class="ri-body">
+        <div class="ri-main">${side} <span class="ri-dur">${dur}</span></div>
+        <div class="ri-time">${fmtDateTime(e.start)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── LOG SCREEN ── */
+function setLogFilter(f, btn) {
+  logFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderLog();
+}
+
+function toggleDatePicker() {
+  const dp = document.getElementById('date-picker');
+  dp.classList.toggle('open');
+}
+function applyDateFilter() {
+  dateFrom = document.getElementById('dp-from').value || null;
+  dateTo = document.getElementById('dp-to').value || null;
+  document.getElementById('date-picker').classList.remove('open');
+  const btn = document.getElementById('date-filter-btn');
+  if (dateFrom || dateTo) {
+    btn.classList.add('has-filter');
+    const lbl = (dateFrom || '…') + ' → ' + (dateTo || '…');
+    document.getElementById('date-filter-label').textContent = '📅 ' + lbl;
+  } else {
+    btn.classList.remove('has-filter');
+    document.getElementById('date-filter-label').textContent = '📅 Date';
+  }
+  renderLog();
+}
+function clearDateFilter() {
+  dateFrom = dateTo = null;
+  document.getElementById('dp-from').value = '';
+  document.getElementById('dp-to').value = '';
+  document.getElementById('date-filter-btn').classList.remove('has-filter');
+  document.getElementById('date-filter-label').textContent = '📅 Date';
+  document.getElementById('date-picker').classList.remove('open');
+  renderLog();
+}
+
+// close picker on outside click
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.date-filter-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('date-picker').classList.remove('open');
+  }
+});
+
+function getFilteredEntries() {
+  return entries.filter(e => {
+    if (logFilter !== 'all' && e.side !== logFilter) return false;
+    if (dateFrom) {
+      const from = new Date(dateFrom); from.setHours(0,0,0,0);
+      if (e.start < from.getTime()) return false;
+    }
+    if (dateTo) {
+      const to = new Date(dateTo); to.setHours(23,59,59,999);
+      if (e.start > to.getTime()) return false;
+    }
+    return true;
+  });
+}
+
+function renderLog() {
+  const filtered = getFilteredEntries();
+  const cont = document.getElementById('log-body');
+  if (!filtered.length) {
+    cont.innerHTML = '<div class="log-empty">Nothing here yet.<br>Start timing a feed to see entries.</div>';
+    return;
+  }
+  const groups = {};
+  filtered.forEach(e => {
+    const k = dayKey(e.start);
+    if (!groups[k]) groups[k] = [];
+    groups[k].push(e);
+  });
+  let html = '';
+  Object.entries(groups).forEach(([k, rows]) => {
+    html += `<div class="day-group"><div class="day-label">${dayLabel(k)}</div><div class="log-card">`;
+    rows.forEach(e => {
+      const side = e.side==='L'?'Left side':e.side==='R'?'Right side':'Pumped';
+      const dur = e.side==='P' ? e.ml+'ml' : fmtDur(e.dur);
+      html += `<div class="log-entry">
+        <div class="le-dot dot-${e.side}"></div>
+        <div class="le-body">
+          <div class="le-top">
+            <span class="le-side">${side}</span>
+            <span class="le-dur">${dur}</span>
+          </div>
+          <div class="le-time">${fmtDateTime(e.start)}</div>
+        </div>
+        <button class="le-del" onclick="deleteEntry(${e.id})">×</button>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+  cont.innerHTML = html;
+}
+
+/* ── SUMMARY ── */
+function setSumTab(t, btn) {
+  sumTab = t;
+  document.querySelectorAll('.sum-tab').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  renderSummary();
+}
+function getSumEntries() {
+  const now = Date.now();
+  if (sumTab === 'day') return entries.filter(e => dayKey(e.start) === dayKey(now));
+  if (sumTab === 'week') {
+    const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-d.getDay());
+    return entries.filter(e => e.start >= d.getTime());
+  }
+  const d = new Date(); d.setDate(1); d.setHours(0,0,0,0);
+  return entries.filter(e => e.start >= d.getTime());
+}
+function renderSummary() {
+  const data = getSumEntries();
+  const feeds = data.filter(e => e.side !== 'P');
+  const pumps = data.filter(e => e.side === 'P');
+  const lefts = feeds.filter(e => e.side === 'L');
+  const rights = feeds.filter(e => e.side === 'R');
+  const totalSec = feeds.reduce((a,e) => a+e.dur, 0);
+  const totalMl = pumps.reduce((a,e) => a+(e.ml||0), 0);
+  const avgDur = feeds.length ? Math.round(totalSec/feeds.length) : 0;
+
+  // bar data
+  let barData = [];
+  if (sumTab === 'day') {
+    ['12a','4a','8a','12p','4p','8p'].forEach((lbl,i) => {
+      const ds = new Date(); ds.setHours(0,0,0,0);
+      const from = ds.getTime() + i*4*3600000, to = from + 4*3600000;
+      const ch = feeds.filter(e => e.start>=from && e.start<to);
+      barData.push({lbl, L:ch.filter(e=>e.side==='L').length, R:ch.filter(e=>e.side==='R').length});
+    });
+  } else if (sumTab === 'week') {
+    ['S','M','T','W','T','F','S'].forEach((lbl,i) => {
+      const ch = feeds.filter(e => new Date(e.start).getDay()===i);
+      barData.push({lbl, L:ch.filter(e=>e.side==='L').length, R:ch.filter(e=>e.side==='R').length});
+    });
+  } else {
+    for (let w=0; w<5; w++) {
+      const ch = feeds.filter(e => Math.floor((new Date(e.start).getDate()-1)/7)===w);
+      if (ch.length || w<4) barData.push({lbl:'W'+(w+1), L:ch.filter(e=>e.side==='L').length, R:ch.filter(e=>e.side==='R').length});
+    }
+  }
+
+  const maxBar = Math.max(1, ...barData.map(b=>b.L+b.R));
+  const barRows = barData.map(b => {
+    const pL = Math.round(b.L/maxBar*100), pR = Math.round(b.R/maxBar*100);
+    return `<div class="bar-row">
+      <span class="brl">${b.lbl}</span>
+      <div class="br-track">
+        <div class="br-fill-L" style="width:${pL}%"></div>
+        <div class="br-fill-R" style="width:${pR}%"></div>
+      </div>
+      <span class="brv">${b.L+b.R||''}</span>
+    </div>`;
+  }).join('');
+
+  const pl = sumTab==='day'?'today':sumTab==='week'?'this week':'this month';
+
+  document.getElementById('sum-body').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="sc-label">Feeds</div>
+        <div class="sc-val">${feeds.length}</div>
+        <div class="sc-sub">${pl}</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">Total time</div>
+        <div class="sc-val">${Math.floor(totalSec/60)}<sup>m</sup></div>
+        <div class="sc-sub">nursing</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">Left / Right</div>
+        <div class="sc-val">${lefts.length} <sup style="color:var(--ink-faint)">/</sup> ${rights.length}</div>
+        <div class="sc-sub">feeds per side</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-label">Avg feed</div>
+        <div class="sc-val">${fmtDur(avgDur)}</div>
+        <div class="sc-sub">duration</div>
+      </div>
+      ${pumps.length ? `<div class="stat-card full">
+        <div class="sc-label">Pumped</div>
+        <div class="sc-val">${totalMl}<sup>ml</sup></div>
+        <div class="sc-sub">${pumps.length} session${pumps.length!==1?'s':''} ${pl}</div>
+      </div>` : ''}
+    </div>
+    <div class="bar-section">
+      <div class="sc-label">${sumTab==='day'?'Time of day':sumTab==='week'?'By day':'By week'}</div>
+      ${barRows || '<div style="color:var(--ink-faint);font-size:13px;font-style:italic;padding:4px 0">No data yet</div>'}
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:var(--sage)"></div>Left</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--dusty-blue)"></div>Right</div>
+      </div>
+    </div>`;
+}
+
+/* ── RESTORE SESSION ── */
+function restoreSession() {
+  if (session) {
+    startTimer(session.side);
+    // restore real start time
+    session = JSON.parse(localStorage.getItem('nk_session') || 'null');
+  }
+}
+
+/* ── INIT ── */
+renderTimer();
+restoreSession();
+setInterval(() => { renderTimer(); }, 30000);
+</script>
+  </body>
+</html>
