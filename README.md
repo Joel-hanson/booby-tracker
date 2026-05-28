@@ -2,6 +2,13 @@
 
 A lightweight browser-based nursing tracker for timing left/right feeds, logging pumped milk, and viewing daily/weekly/monthly stats.
 
+<img width="429" height="798" alt="image" src="https://github.com/user-attachments/assets/95c700ec-36d8-4862-8099-706a223afb4d" />
+
+## How to install
+
+iPhone: Open in Safari → Share button → Add to Home Screen
+Android: Open in Chrome → three-dot menu → Add to Home Screen (or Chrome will prompt automatically)
+
 ## Features
 
 - Start/stop left or right nursing sessions with one tap
