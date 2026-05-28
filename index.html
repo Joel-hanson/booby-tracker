@@ -6,6 +6,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Nursing" />
+    <!-- favicon -->
+    <link rel="apple-touch-icon" sizes="180x180"
+      href="icon-512.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="icon-512.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="icon-512.png" />
     <meta charset="UTF-8" />
     <meta
       name="viewport"
@@ -201,21 +206,23 @@
       }
 
       .side-btn {
-        border: 2px solid transparent;
+        border: 2.5px solid var(--border);
         border-radius: var(--r);
         padding: 1.4rem 1rem 1.2rem;
-        font-family: "DM Sans", sans-serif;
+        font-family: "DM Mono", serif;
         cursor: pointer;
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 5px;
         transition:
-          transform 0.12s,
-          box-shadow 0.12s;
+          transform 0.15s,
+          box-shadow 0.2s,
+          border-color 0.2s,
+          background 0.2s;
         position: relative;
         background: var(--warm-white);
-        box-shadow: var(--shadow);
+        box-shadow: 0 2px 8px rgba(30, 28, 26, 0.06);
       }
 
       .side-btn:active {
@@ -249,16 +256,24 @@
       }
 
       .side-btn.left-btn {
-        border-color: var(--sage-light);
+        border-color: rgba(107, 143, 113, 0.25);
       }
       .side-btn.left-btn:hover {
         border-color: var(--sage);
+        box-shadow: 0 4px 16px rgba(107, 143, 113, 0.2);
       }
+
       .side-btn.left-btn.timing {
         background: var(--sage);
-        border-color: var(--sage);
-        box-shadow: 0 6px 24px rgba(107, 143, 113, 0.4);
+        border-color: var(--sage-dark);
+        border-width: 3px;
+        box-shadow:
+          0 8px 32px rgba(107, 143, 113, 0.45),
+          0 2px 8px rgba(107, 143, 113, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
       }
+
       .side-btn.left-btn.timing .sb-name,
       .side-btn.left-btn.timing .sb-since {
         color: rgba(255, 255, 255, 0.85);
@@ -270,15 +285,21 @@
       }
 
       .side-btn.right-btn {
-        border-color: var(--dusty-blue-light);
+        border-color: rgba(123, 155, 181, 0.25);
       }
       .side-btn.right-btn:hover {
         border-color: var(--dusty-blue);
+        box-shadow: 0 4px 16px rgba(123, 155, 181, 0.2);
       }
       .side-btn.right-btn.timing {
         background: var(--dusty-blue);
-        border-color: var(--dusty-blue);
-        box-shadow: 0 6px 24px rgba(123, 155, 181, 0.4);
+        border-color: var(--dusty-blue-dark);
+        border-width: 3px;
+        box-shadow:
+          0 8px 32px rgba(123, 155, 181, 0.45),
+          0 2px 8px rgba(123, 155, 181, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
       }
       .side-btn.right-btn.timing .sb-name,
       .side-btn.right-btn.timing .sb-since {
@@ -289,7 +310,33 @@
         color: #fff;
         display: block;
       }
-
+      .side-btn.last-used {
+        border-color: inherit;
+        border-width: 2.5px;
+        position: relative;
+      }
+      .side-btn.last-used::before {
+        content: "last fed";
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-family: "DM Mono", monospace;
+        background: var(--warm-white);
+        padding: 0 6px;
+        color: var(--ink-faint);
+      }
+      .side-btn.left-btn.last-used {
+        border-color: var(--sage);
+        box-shadow: 0 4px 20px rgba(107, 143, 113, 0.25);
+      }
+      .side-btn.right-btn.last-used {
+        border-color: var(--dusty-blue);
+        box-shadow: 0 4px 20px rgba(123, 155, 181, 0.25);
+      }
       /* pump section */
       .pump-section {
         margin: 10px 1.25rem 0;
@@ -836,6 +883,11 @@
       }
     </style>
   </head>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
   <body>
     <!-- NAV -->
     <nav class="app-nav">
@@ -1081,7 +1133,7 @@
               background: var(--cream);
               border-radius: var(--r-sm);
               padding: 10px 6px;
-              font-family: &quot;Fraunces&quot;, serif;
+              font-family: &quot;DM Mono&quot;, monospace;
               font-size: 14px;
               color: var(--ink-soft);
               cursor: pointer;
@@ -1099,7 +1151,7 @@
               background: var(--cream);
               border-radius: var(--r-sm);
               padding: 10px 6px;
-              font-family: &quot;Fraunces&quot;, serif;
+              font-family: &quot;DM Mono&quot;, monospace;
               font-size: 14px;
               color: var(--ink-soft);
               cursor: pointer;
@@ -1117,7 +1169,7 @@
               background: var(--cream);
               border-radius: var(--r-sm);
               padding: 10px 6px;
-              font-family: &quot;Fraunces&quot;, serif;
+              font-family: &quot;DM Mono&quot;, monospace;
               font-size: 14px;
               color: var(--ink-soft);
               cursor: pointer;
@@ -1135,7 +1187,7 @@
               background: var(--cream);
               border-radius: var(--r-sm);
               padding: 11px;
-              font-family: &quot;Fraunces&quot;, serif;
+              font-family: &quot;DM Mono&quot;, monospace;
               font-size: 14px;
               cursor: pointer;
             ">
@@ -1150,7 +1202,7 @@
               color: #fff;
               border-radius: var(--r-sm);
               padding: 11px;
-              font-family: &quot;Fraunces&quot;, serif;
+              font-family: &quot;DM Mono&quot;, monospace;
               font-size: 14px;
               cursor: pointer;
             ">
@@ -1346,13 +1398,21 @@
           : "no feeds yet";
 
         // per-side hints
+        // highlight last used side
         ["L", "R"].forEach((side) => {
-          const last = entries.find((e) => e.side === side);
-          const el = document.getElementById("since-" + side);
-          if (!session || session.side !== side) {
-            el.textContent = last ? timeSince(last.start) : "—";
-          }
+          const btn = document.getElementById("btn-" + side);
+          btn.classList.remove("last-used");
         });
+        if (!session && entries.length) {
+          const lastFeed = entries.find(
+            (e) => e.side === "L" || e.side === "R",
+          );
+          if (lastFeed) {
+            document
+              .getElementById("btn-" + lastFeed.side)
+              .classList.add("last-used");
+          }
+        }
 
         // recent list (last 4 entries)
         const recent = entries.slice(0, 4);
@@ -1695,9 +1755,5 @@
       }, 30000);
     </script>
   </body>
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js");
-    }
-  </script>
+
 </html>
