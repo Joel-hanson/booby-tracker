@@ -7,8 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Nursing" />
     <!-- favicon -->
-    <link rel="apple-touch-icon" sizes="180x180"
-      href="icon-512.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-512.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="icon-512.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="icon-512.png" />
     <meta charset="UTF-8" />
@@ -887,6 +886,44 @@
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("sw.js");
     }
+
+    async function getSwRegistration() {
+      if (!("serviceWorker" in navigator)) return null;
+      return navigator.serviceWorker.ready;
+    }
+
+    async function requestNotifPermission() {
+      if (!("Notification" in window)) return false;
+      if (Notification.permission === "granted") return true;
+      const result = await Notification.requestPermission();
+      return result === "granted";
+    }
+
+    async function swStartTimer(side, start) {
+      const granted = await requestNotifPermission();
+      if (!granted) return;
+      const reg = await getSwRegistration();
+      if (reg && reg.active) {
+        reg.active.postMessage({ type: "START_TIMER", side, start });
+      }
+    }
+
+    function swStopTimer() {
+      navigator.serviceWorker.ready.then((reg) => {
+        if (reg.active) reg.active.postMessage({ type: "STOP_TIMER" });
+      });
+    }
+
+    // Listen for ticks from SW (keeps page clock in sync even when backgrounded)
+    navigator.serviceWorker &&
+      navigator.serviceWorker.addEventListener("message", (e) => {
+        if (e.data.type === "TICK") {
+          document.getElementById("clock").textContent = clockStr(
+            e.data.elapsed,
+          );
+          document.title = "🤱 " + clockStr(e.data.elapsed) + " · Nursing";
+        }
+      });
   </script>
   <body>
     <!-- NAV -->
@@ -1002,6 +1039,7 @@
             </div>
           </div>
         </div>
+        <button class="filter-chip" onclick="exportData()">⬇</button>
       </div>
       <div class="log-body" id="log-body"></div>
     </div>
@@ -1211,6 +1249,88 @@
         </div>
       </div>
     </div>
+    <div
+      id="export-modal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+      ">
+      <div
+        style="
+          background: var(--warm-white);
+          border-radius: var(--r);
+          padding: 1.5rem;
+          margin: 1rem;
+          width: 100%;
+          max-width: 320px;
+          box-shadow: var(--shadow-lg);
+        ">
+        <div style="font-size: 16px; margin-bottom: 6px; color: var(--ink)">
+          Export feed log
+        </div>
+        <div
+          style="
+            font-size: 13px;
+            color: var(--ink-faint);
+            font-style: italic;
+            margin-bottom: 1.25rem;
+          ">
+          ${entries.length} entries total
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <button
+            onclick="exportCSV()"
+            style="
+              border: 1.5px solid var(--border);
+              background: var(--cream);
+              border-radius: var(--r-sm);
+              padding: 13px;
+              font-family: &quot;Fraunces&quot;, serif;
+              font-size: 15px;
+              color: var(--ink);
+              cursor: pointer;
+              text-align: left;
+            ">
+            📊 CSV — open in Excel / Sheets
+          </button>
+          <button
+            onclick="exportJSON()"
+            style="
+              border: 1.5px solid var(--border);
+              background: var(--cream);
+              border-radius: var(--r-sm);
+              padding: 13px;
+              font-family: &quot;Fraunces&quot;, serif;
+              font-size: 15px;
+              color: var(--ink);
+              cursor: pointer;
+              text-align: left;
+            ">
+            🗂 JSON — full backup
+          </button>
+        </div>
+        <button
+          onclick="closeExport()"
+          style="
+            margin-top: 12px;
+            width: 100%;
+            border: none;
+            background: none;
+            font-family: &quot;Fraunces&quot;, serif;
+            font-size: 14px;
+            color: var(--ink-faint);
+            padding: 8px;
+            cursor: pointer;
+          ">
+          Cancel
+        </button>
+      </div>
+    </div>
     <div class="toast" id="toast"></div>
 
     <script>
@@ -1223,6 +1343,14 @@
         dateTo = null;
       let sumTab = "day";
       let currentScreen = "timer";
+
+      // Push a dummy history state so back button doesn't leave the app
+      history.pushState({ page: "app" }, "");
+
+      window.addEventListener("popstate", () => {
+        // Re-push so back never actually navigates away
+        history.pushState({ page: "app" }, "");
+      });
 
       /* ── UTILS ── */
       const pad = (n) => String(n).padStart(2, "0");
@@ -1310,11 +1438,14 @@
           (side === "L" ? "Left" : "Right") + " · timing";
         document.getElementById("timer-sub").textContent = "tap again to stop";
         document.getElementById("btn-" + side).classList.add("timing");
+
+        swStartTimer(side, session.start);
       }
       function tick() {
         if (!session) return;
         const s = Math.floor((Date.now() - session.start) / 1000);
         document.getElementById("clock").textContent = clockStr(s);
+        document.title = "🤱 " + clockStr(s) + " · Nursing";
       }
       function stopTimer() {
         if (!session) return null;
@@ -1338,6 +1469,9 @@
         ["L", "R"].forEach((s) => {
           document.getElementById("btn-" + s).classList.remove("timing");
         });
+
+        swStopTimer();
+        document.title = "Nursing Tracker";
         return e;
       }
       function handleSide(side) {
@@ -1747,6 +1881,79 @@
           btn.style.fontWeight = active ? "500" : "400";
         });
       }
+
+      /* ── EXPORT DATA ── */
+      function exportData() {
+        document.querySelector("#export-modal div div").textContent =
+          entries.length + " entries total";
+        document.getElementById("export-modal").style.display = "flex";
+      }
+      function closeExport() {
+        document.getElementById("export-modal").style.display = "none";
+      }
+      function exportCSV() {
+        const rows = [
+          ["Date", "Time", "Side", "Duration (min)", "Pumped (ml)"],
+        ];
+        entries.forEach((e) => {
+          const d = new Date(e.start);
+          rows.push([
+            d.toLocaleDateString(),
+            d.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            }),
+            e.side === "L" ? "Left" : e.side === "R" ? "Right" : "Pumped",
+            e.side !== "P" ? (e.dur / 60).toFixed(1) : "",
+            e.side === "P" ? e.ml : "",
+          ]);
+        });
+        const csv = rows.map((r) => r.join(",")).join("\n");
+        downloadFile("nursing-log.csv", "text/csv", csv);
+        closeExport();
+      }
+      function exportJSON() {
+        downloadFile(
+          "nursing-log.json",
+          "application/json",
+          JSON.stringify(entries, null, 2),
+        );
+        closeExport();
+      }
+      function downloadFile(filename, type, content) {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([content], { type }));
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      let wakeLock = null;
+
+      /* ── WAKE LOCK ── */
+
+      async function requestWakeLock() {
+        try {
+          if ("wakeLock" in navigator) {
+            wakeLock = await navigator.wakeLock.request("screen");
+          }
+        } catch (e) {}
+      }
+
+      function releaseWakeLock() {
+        if (wakeLock) {
+          wakeLock.release();
+          wakeLock = null;
+        }
+      }
+
+      // Re-acquire if visibility comes back while timing
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible" && session) {
+          requestWakeLock();
+        }
+      });
       /* ── INIT ── */
       renderTimer();
       restoreSession();
@@ -1755,5 +1962,4 @@
       }, 30000);
     </script>
   </body>
-
 </html>
