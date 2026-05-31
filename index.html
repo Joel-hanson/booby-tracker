@@ -13,11 +13,13 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>Booby Tracker</title>
     <link
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap"
-      rel="stylesheet" />
+      rel="stylesheet"
+    />
     <style>
       :root {
         --cream: #faf7f2;
@@ -992,32 +994,37 @@
         <button
           class="filter-chip active"
           data-filter="all"
-          onclick="setLogFilter('all', this)">
+          onclick="setLogFilter('all', this)"
+        >
           All
         </button>
         <button
           class="filter-chip"
           data-filter="L"
-          onclick="setLogFilter('L', this)">
+          onclick="setLogFilter('L', this)"
+        >
           Left
         </button>
         <button
           class="filter-chip"
           data-filter="R"
-          onclick="setLogFilter('R', this)">
+          onclick="setLogFilter('R', this)"
+        >
           Right
         </button>
         <button
           class="filter-chip"
           data-filter="P"
-          onclick="setLogFilter('P', this)">
+          onclick="setLogFilter('P', this)"
+        >
           Pumped
         </button>
         <div class="date-filter-wrap">
           <button
             class="date-filter-btn"
             id="date-filter-btn"
-            onclick="toggleDatePicker()">
+            onclick="toggleDatePicker()"
+          >
             <span id="date-filter-label">📅 Date</span>
           </button>
           <div class="date-picker-popup" id="date-picker">
@@ -1068,7 +1075,8 @@
         z-index: 100;
         align-items: center;
         justify-content: center;
-      ">
+      "
+    >
       <div
         style="
           background: var(--warm-white);
@@ -1078,7 +1086,8 @@
           width: 100%;
           max-width: 360px;
           box-shadow: var(--shadow-lg);
-        ">
+        "
+      >
         <div style="font-size: 16px; margin-bottom: 1rem; color: var(--ink)">
           Edit entry
         </div>
@@ -1089,7 +1098,9 @@
             color: var(--ink-faint);
             text-transform: uppercase;
             letter-spacing: 0.06em;
-          ">Date & Time</label>
+          "
+          >Date & Time</label
+        >
         <input
           type="datetime-local"
           id="edit-datetime"
@@ -1104,14 +1115,17 @@
             color: var(--ink);
             outline: none;
             margin: 6px 0 14px;
-          " />
+          "
+        />
         <label
           style="
             font-size: 11px;
             color: var(--ink-faint);
             text-transform: uppercase;
             letter-spacing: 0.06em;
-          ">Duration (minutes)</label>
+          "
+          >Duration (minutes)</label
+        >
         <input
           type="number"
           id="edit-dur"
@@ -1127,14 +1141,17 @@
             color: var(--ink);
             outline: none;
             margin: 6px 0 14px;
-          " />
+          "
+        />
         <label
           style="
             font-size: 11px;
             color: var(--ink-faint);
             text-transform: uppercase;
             letter-spacing: 0.06em;
-          ">Pumped ml (if pumped)</label>
+          "
+          >Pumped ml (if pumped)</label
+        >
         <input
           type="number"
           id="edit-ml"
@@ -1150,17 +1167,21 @@
             color: var(--ink);
             outline: none;
             margin: 6px 0 14px;
-          " />
+          "
+        />
         <label
           style="
             font-size: 11px;
             color: var(--ink-faint);
             text-transform: uppercase;
             letter-spacing: 0.06em;
-          ">Side</label>
+          "
+          >Side</label
+        >
         <div
           id="edit-side-group"
-          style="display: flex; gap: 8px; margin: 6px 0 14px">
+          style="display: flex; gap: 8px; margin: 6px 0 14px"
+        >
           <button
             type="button"
             data-side="L"
@@ -1176,7 +1197,8 @@
               color: var(--ink-soft);
               cursor: pointer;
               transition: all 0.15s;
-            ">
+            "
+          >
             ◀ Left
           </button>
           <button
@@ -1194,7 +1216,8 @@
               color: var(--ink-soft);
               cursor: pointer;
               transition: all 0.15s;
-            ">
+            "
+          >
             ▶ Right
           </button>
           <button
@@ -1212,7 +1235,8 @@
               color: var(--ink-soft);
               cursor: pointer;
               transition: all 0.15s;
-            ">
+            "
+          >
             🍼 Pumped
           </button>
         </div>
@@ -1228,7 +1252,8 @@
               font-family: &quot;DM Mono&quot;, monospace;
               font-size: 14px;
               cursor: pointer;
-            ">
+            "
+          >
             Cancel
           </button>
           <button
@@ -1243,7 +1268,8 @@
               font-family: &quot;DM Mono&quot;, monospace;
               font-size: 14px;
               cursor: pointer;
-            ">
+            "
+          >
             Save
           </button>
         </div>
@@ -1259,7 +1285,8 @@
         z-index: 100;
         align-items: center;
         justify-content: center;
-      ">
+      "
+    >
       <div
         style="
           background: var(--warm-white);
@@ -1269,7 +1296,8 @@
           width: 100%;
           max-width: 320px;
           box-shadow: var(--shadow-lg);
-        ">
+        "
+      >
         <div style="font-size: 16px; margin-bottom: 6px; color: var(--ink)">
           Export feed log
         </div>
@@ -1279,7 +1307,8 @@
             color: var(--ink-faint);
             font-style: italic;
             margin-bottom: 1.25rem;
-          ">
+          "
+        >
           ${entries.length} entries total
         </div>
         <div style="display: flex; flex-direction: column; gap: 8px">
@@ -1295,7 +1324,8 @@
               color: var(--ink);
               cursor: pointer;
               text-align: left;
-            ">
+            "
+          >
             📊 CSV — open in Excel / Sheets
           </button>
           <button
@@ -1310,7 +1340,8 @@
               color: var(--ink);
               cursor: pointer;
               text-align: left;
-            ">
+            "
+          >
             🗂 JSON — full backup
           </button>
         </div>
@@ -1326,7 +1357,8 @@
             color: var(--ink-faint);
             padding: 8px;
             cursor: pointer;
-          ">
+          "
+        >
           Cancel
         </button>
       </div>
