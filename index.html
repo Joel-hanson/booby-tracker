@@ -348,6 +348,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        flex-wrap: wrap;
         box-shadow: var(--shadow);
       }
       .pump-label {
@@ -358,6 +359,48 @@
       .pump-ml-wrap {
         flex: 1;
         position: relative;
+        min-width: 120px;
+      }
+      .pump-side-wrap {
+        display: flex;
+        gap: 8px;
+        margin: 10px 0 0;
+        width: 100%;
+      }
+      .side-select {
+        flex: 1;
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+        padding: 10px 8px;
+        font-family: "DM Mono", monospace;
+        font-size: 13px;
+        background: var(--warm-white);
+        color: var(--ink);
+        cursor: pointer;
+        transition:
+          border-color 0.2s,
+          background 0.2s,
+          color 0.2s;
+      }
+      .side-select.active {
+        border-color: var(--sage);
+        background: var(--sage-light);
+        color: var(--sage-dark);
+      }
+      .persist-section {
+        justify-content: space-between;
+      }
+      .persist-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--ink-soft);
+        width: 100%;
+      }
+      .persist-label input {
+        width: 16px;
+        height: 16px;
       }
       .pump-ml-wrap input {
         width: 100%;
@@ -453,6 +496,9 @@
       }
       .dot-P {
         background: var(--blush);
+      }
+      .dot-B {
+        background: #f0b42b;
       }
       .ri-body {
         flex: 1;
@@ -977,7 +1023,45 @@
           <input type="number" id="pump-ml" value="60" min="1" max="999" />
           <span class="pump-unit">ml</span>
         </div>
+        <div class="pump-side-wrap">
+          <button
+            type="button"
+            class="side-select active"
+            data-pumpside="L"
+            onclick="setPumpSide('L')"
+          >
+            Left
+          </button>
+          <button
+            type="button"
+            class="side-select"
+            data-pumpside="R"
+            onclick="setPumpSide('R')"
+          >
+            Right
+          </button>
+        </div>
         <button class="pump-btn" onclick="logPumped()">Log</button>
+      </div>
+
+      <div class="pump-section">
+        <span class="pump-label">🥛 Bottle</span>
+        <div class="pump-ml-wrap">
+          <input type="number" id="bottle-ml" value="120" min="1" max="999" />
+          <span class="pump-unit">ml</span>
+        </div>
+        <button class="pump-btn" onclick="logBottle()">Log bottle</button>
+      </div>
+
+      <div class="pump-section persist-section">
+        <label class="persist-label">
+          <input
+            type="checkbox"
+            id="persist-toggle"
+            onchange="togglePersistTimer(this.checked)"
+          />
+          Keep timer when app is backgrounded
+        </label>
       </div>
 
       <div class="recent-section">
@@ -1018,6 +1102,13 @@
           onclick="setLogFilter('P', this)"
         >
           Pumped
+        </button>
+        <button
+          class="filter-chip"
+          data-filter="B"
+          onclick="setLogFilter('B', this)"
+        >
+          Bottle
         </button>
         <div class="date-filter-wrap">
           <button
@@ -1239,6 +1330,25 @@
           >
             🍼 Pumped
           </button>
+          <button
+            type="button"
+            data-side="B"
+            onclick="selectEditSide('B')"
+            style="
+              flex: 1;
+              border: 2px solid var(--border);
+              background: var(--cream);
+              border-radius: var(--r-sm);
+              padding: 10px 6px;
+              font-family: &quot;DM Mono&quot;, monospace;
+              font-size: 14px;
+              color: var(--ink-soft);
+              cursor: pointer;
+              transition: all 0.15s;
+            "
+          >
+            🥛 Bottle
+          </button>
         </div>
         <div style="display: flex; gap: 8px; margin-top: 4px">
           <button
@@ -1367,8 +1477,19 @@
 
     <script>
       /* ── STATE ── */
-      let entries = JSON.parse(localStorage.getItem("nk_v1") || "[]");
-      let session = JSON.parse(localStorage.getItem("nk_session") || "null");
+      const storageKeys = {
+        data: "nk_v1",
+        session: "nk_session",
+        timerPersist: "nk_timer_persist",
+      };
+      let entries = JSON.parse(localStorage.getItem(storageKeys.data) || "[]");
+      let session = JSON.parse(
+        localStorage.getItem(storageKeys.session) || "null",
+      );
+      let persistTimer = JSON.parse(
+        localStorage.getItem(storageKeys.timerPersist) || "true",
+      );
+      let pumpSide = "L";
       let tickId = null;
       let logFilter = "all";
       let dateFrom = null,
@@ -1459,9 +1580,13 @@
       }
 
       /* ── TIMER ── */
-      function startTimer(side) {
-        session = { side, start: Date.now() };
-        localStorage.setItem("nk_session", JSON.stringify(session));
+      function startTimer(side, start = Date.now()) {
+        session = { side, start };
+        if (persistTimer) {
+          localStorage.setItem(storageKeys.session, JSON.stringify(session));
+        } else {
+          localStorage.removeItem(storageKeys.session);
+        }
         if (tickId) clearInterval(tickId);
         tickId = setInterval(tick, 500);
         tick();
@@ -1475,9 +1600,11 @@
       }
       function tick() {
         if (!session) return;
-        const s = Math.floor((Date.now() - session.start) / 1000);
-        document.getElementById("clock").textContent = clockStr(s);
-        document.title = "🤱 " + clockStr(s) + " · Nursing";
+        const elapsed = Math.max(
+          0,
+          Math.floor((Date.now() - session.start) / 1000),
+        );
+        document.getElementById("clock").textContent = clockStr(elapsed);
       }
       function stopTimer() {
         if (!session) return null;
@@ -1492,7 +1619,7 @@
           ml: null,
         };
         session = null;
-        localStorage.removeItem("nk_session");
+        localStorage.removeItem(storageKeys.session);
         document.getElementById("pulse").classList.remove("on");
         document.getElementById("status-text").textContent =
           "tap a side to begin";
@@ -1522,6 +1649,27 @@
         }
       }
 
+      function setPumpSide(side) {
+        pumpSide = side;
+        document.querySelectorAll(".side-select").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.pumpside === side);
+        });
+      }
+      function togglePersistTimer(on) {
+        persistTimer = on;
+        localStorage.setItem(storageKeys.timerPersist, JSON.stringify(on));
+        if (!on) localStorage.removeItem(storageKeys.session);
+        showToast(
+          on
+            ? "Timer persistence enabled"
+            : "Timer persistence disabled for reloads",
+        );
+      }
+      function renderPersistToggle() {
+        const cb = document.getElementById("persist-toggle");
+        if (cb) cb.checked = persistTimer;
+      }
+
       /* ── DATA ── */
       function addEntry(e) {
         entries.unshift(e);
@@ -1542,9 +1690,26 @@
           showToast("Enter ml amount");
           return;
         }
-        const e = { id: Date.now(), side: "P", start: Date.now(), dur: 0, ml };
+        const e = {
+          id: Date.now(),
+          side: "P",
+          pumpSide,
+          start: Date.now(),
+          dur: 0,
+          ml,
+        };
         addEntry(e);
         showToast("🍼 " + ml + "ml pumped logged");
+      }
+      function logBottle() {
+        const ml = parseInt(document.getElementById("bottle-ml").value) || 0;
+        if (!ml) {
+          showToast("Enter bottle amount");
+          return;
+        }
+        const e = { id: Date.now(), side: "B", start: Date.now(), dur: 0, ml };
+        addEntry(e);
+        showToast("🥛 " + ml + "ml bottle logged");
       }
 
       /* ── TOAST ── */
@@ -1595,8 +1760,13 @@
                 ? "Left side"
                 : e.side === "R"
                   ? "Right side"
-                  : "Pumped";
-            const dur = e.side === "P" ? e.ml + "ml" : fmtDur(e.dur);
+                  : e.side === "B"
+                    ? "Bottle"
+                    : e.pumpSide
+                      ? `Pumped ${e.pumpSide === "L" ? "left" : "right"}`
+                      : "Pumped";
+            const dur =
+              e.side === "P" || e.side === "B" ? e.ml + "ml" : fmtDur(e.dur);
             return `<div class="recent-item">
       <div class="ri-dot dot-${e.side}"></div>
       <div class="ri-body">
@@ -1698,8 +1868,13 @@
                 ? "Left side"
                 : e.side === "R"
                   ? "Right side"
-                  : "Pumped";
-            const dur = e.side === "P" ? e.ml + "ml" : fmtDur(e.dur);
+                  : e.side === "B"
+                    ? "Bottle"
+                    : e.pumpSide
+                      ? `Pumped ${e.pumpSide === "L" ? "left" : "right"}`
+                      : "Pumped";
+            const dur =
+              e.side === "P" || e.side === "B" ? e.ml + "ml" : fmtDur(e.dur);
             html += `<div class="log-entry">
         <div class="le-dot dot-${e.side}"></div>
         <div class="le-body">
@@ -1744,12 +1919,14 @@
       }
       function renderSummary() {
         const data = getSumEntries();
-        const feeds = data.filter((e) => e.side !== "P");
+        const feeds = data.filter((e) => e.side !== "P" && e.side !== "B");
         const pumps = data.filter((e) => e.side === "P");
+        const bottles = data.filter((e) => e.side === "B");
         const lefts = feeds.filter((e) => e.side === "L");
         const rights = feeds.filter((e) => e.side === "R");
         const totalSec = feeds.reduce((a, e) => a + e.dur, 0);
         const totalMl = pumps.reduce((a, e) => a + (e.ml || 0), 0);
+        const totalBottleMl = bottles.reduce((a, e) => a + (e.ml || 0), 0);
         const avgDur = feeds.length ? Math.round(totalSec / feeds.length) : 0;
 
         // bar data
@@ -1844,6 +2021,15 @@
       </div>`
           : ""
       }
+      ${
+        bottles.length
+          ? `<div class="stat-card full">
+        <div class="sc-label">Bottle</div>
+        <div class="sc-val">${totalBottleMl}<sup>ml</sup></div>
+        <div class="sc-sub">${bottles.length} session${bottles.length !== 1 ? "s" : ""} ${pl}</div>
+      </div>`
+          : ""
+      }
     </div>
     <div class="bar-section">
       <div class="sc-label">${sumTab === "day" ? "Time of day" : sumTab === "week" ? "By day" : "By week"}</div>
@@ -1886,9 +2072,13 @@
         const ml = parseInt(document.getElementById("edit-ml").value);
         if (!isNaN(ml) && ml > 0) e.ml = ml;
         const activeBtn = document.querySelector(
-          '#edit-side-group button[style*="var(--sage-light)"]',
+          "#edit-side-group button.active",
         );
-        if (activeBtn) e.side = activeBtn.dataset.side;
+        if (activeBtn) {
+          e.side = activeBtn.dataset.side;
+          if (e.side === "P") e.pumpSide = activeBtn.dataset.side;
+          else delete e.pumpSide;
+        }
         save();
         closeEdit();
         renderLog();
@@ -1898,15 +2088,18 @@
 
       /* ── RESTORE SESSION ── */
       function restoreSession() {
-        if (session) {
-          startTimer(session.side);
-          // restore real start time
-          session = JSON.parse(localStorage.getItem("nk_session") || "null");
+        if (persistTimer && session) {
+          startTimer(session.side, session.start);
+        } else {
+          session = null;
+          if (!persistTimer) localStorage.removeItem(storageKeys.session);
         }
+        renderPersistToggle();
       }
       function selectEditSide(side) {
         document.querySelectorAll("#edit-side-group button").forEach((btn) => {
           const active = btn.dataset.side === side;
+          btn.classList.toggle("active", active);
           btn.style.borderColor = active ? "var(--sage)" : "var(--border)";
           btn.style.background = active ? "var(--sage-light)" : "var(--cream)";
           btn.style.color = active ? "var(--sage-dark)" : "var(--ink-soft)";
@@ -1936,9 +2129,15 @@
               minute: "2-digit",
               hour12: true,
             }),
-            e.side === "L" ? "Left" : e.side === "R" ? "Right" : "Pumped",
-            e.side !== "P" ? (e.dur / 60).toFixed(1) : "",
-            e.side === "P" ? e.ml : "",
+            e.side === "L"
+              ? "Left"
+              : e.side === "R"
+                ? "Right"
+                : e.side === "B"
+                  ? "Bottle"
+                  : "Pumped",
+            e.side !== "P" && e.side !== "B" ? (e.dur / 60).toFixed(1) : "",
+            e.side === "P" || e.side === "B" ? e.ml : "",
           ]);
         });
         const csv = rows.map((r) => r.join(",")).join("\n");
